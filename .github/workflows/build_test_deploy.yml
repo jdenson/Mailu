@@ -115,6 +115,8 @@ jobs:
      packages: write
     steps:
       - uses: actions/checkout@v4
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
       - name: Retrieve global variables
         shell: bash
         run: |
@@ -190,6 +192,8 @@ jobs:
      packages: write
     steps:
       - uses: actions/checkout@v4
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
       - name: Retrieve global variables
         shell: bash
         run: |
@@ -267,6 +271,8 @@ jobs:
      packages: write
     steps:
       - uses: actions/checkout@v4
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
       - name: Retrieve global variables
         shell: bash
         run: |
@@ -345,6 +351,8 @@ jobs:
      packages: write
     steps:
       - uses: actions/checkout@v4
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
       - name: Retrieve global variables
         shell: bash
         run: |
@@ -428,6 +436,8 @@ jobs:
             time: "2"
     steps:
       - uses: actions/checkout@v4
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
       - name: Retrieve global variables
         shell: bash
         run: |
@@ -477,6 +487,8 @@ jobs:
         target: ["setup", "docs", "fetchmail", "webmail", "admin", "traefik-certdumper", "radicale", "rspamd", "oletools", "postfix", "dovecot", "unbound", "nginx"]
     steps:
       - uses: actions/checkout@v4
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
       - name: Retrieve global variables
         shell: bash
         run: |
