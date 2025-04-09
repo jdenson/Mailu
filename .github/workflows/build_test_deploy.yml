@@ -81,7 +81,7 @@ on:
         type: string
 
 env:
-  HCL_FILE: ./tests/build-ci.hcl
+  HCL_FILE: /tests/build-ci.hcl
 
 jobs:
   # Call the common-setup reusable workflow.
