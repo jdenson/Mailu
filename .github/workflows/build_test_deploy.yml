@@ -117,6 +117,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Enable memory overcommit
         run: sudo sysctl -w vm.overcommit_memory=1
+      - name: Create CDI directories
+        run: sudo mkdir -p /etc/buildkit/cdi /etc/cdi /var/run/cdi
       - name: Retrieve global variables
         shell: bash
         run: |
@@ -194,6 +196,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Enable memory overcommit
         run: sudo sysctl -w vm.overcommit_memory=1
+      - name: Create CDI directories
+        run: sudo mkdir -p /etc/buildkit/cdi /etc/cdi /var/run/cdi
       - name: Retrieve global variables
         shell: bash
         run: |
