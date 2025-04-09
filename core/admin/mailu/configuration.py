@@ -1,5 +1,4 @@
 import os
-
 from datetime import timedelta
 import ipaddress
 
@@ -95,6 +94,7 @@ DEFAULT_CONFIG = {
     'PROXY_AUTH_LOGOUT_URL': None,
     'SUBNET': '192.168.203.0/24',
     'SUBNET6': None,
+    'RATELIMIT_STORAGE_URL': ''
 }
 
 class ConfigManager:
@@ -144,6 +144,7 @@ class ConfigManager:
             template = self.DB_TEMPLATES[self.config['DB_FLAVOR']]
             self.config['SQLALCHEMY_DATABASE_URI'] = template.format(**self.config)
 
+        # If RATELIMIT_STORAGE_URL is not set, default to Redis on port 2
         if not self.config.get('RATELIMIT_STORAGE_URL'):
             self.config['RATELIMIT_STORAGE_URL'] = f'redis://{self.config["REDIS_ADDRESS"]}/2'
 
@@ -158,17 +159,53 @@ class ConfigManager:
         self.config['PERMANENT_SESSION_LIFETIME'] = int(self.config['PERMANENT_SESSION_LIFETIME'])
         self.config['AUTH_RATELIMIT_IP_V4_MASK'] = int(self.config['AUTH_RATELIMIT_IP_V4_MASK'])
         self.config['AUTH_RATELIMIT_IP_V6_MASK'] = int(self.config['AUTH_RATELIMIT_IP_V6_MASK'])
-        self.config['AUTH_RATELIMIT_EXEMPTION'] = set(ipaddress.ip_network(cidr, False) for cidr in (cidr.strip() for cidr in self.config['AUTH_RATELIMIT_EXEMPTION'].split(',')) if cidr)
-        self.config['MESSAGE_RATELIMIT_EXEMPTION'] = set([s for s in self.config['MESSAGE_RATELIMIT_EXEMPTION'].lower().replace(' ', '').split(',') if s])
+        self.config['AUTH_RATELIMIT_EXEMPTION'] = set(
+            ipaddress.ip_network(cidr, False)
+            for cidr in (cidr.strip() for cidr in self.config['AUTH_RATELIMIT_EXEMPTION'].split(','))
+            if cidr
+        )
+        self.config['MESSAGE_RATELIMIT_EXEMPTION'] = set(
+            s for s in self.config['MESSAGE_RATELIMIT_EXEMPTION'].lower().replace(' ', '').split(',') if s
+        )
         hostnames = [host.strip() for host in self.config['HOSTNAMES'].split(',')]
         self.config['HOSTNAMES'] = ','.join(hostnames)
         self.config['HOSTNAME'] = hostnames[0]
         self.config['DEFAULT_SPAM_THRESHOLD'] = int(self.config['DEFAULT_SPAM_THRESHOLD'])
-        self.config['PROXY_AUTH_WHITELIST'] = set(ipaddress.ip_network(cidr, False) for cidr in (cidr.strip() for cidr in self.config['PROXY_AUTH_WHITELIST'].split(',')) if cidr)
+        self.config['PROXY_AUTH_WHITELIST'] = set(
+            ipaddress.ip_network(cidr, False)
+            for cidr in (cidr.strip() for cidr in self.config['PROXY_AUTH_WHITELIST'].split(','))
+            if cidr
+        )
         try:
             self.config['MAILU_VERSION'] = open('/version', 'r').read()
         except FileNotFoundError:
             pass
+
+        # --- Advanced Redis Configuration Integration ---
+        try:
+            from .redis_url_parser import parse_redis_url
+        except ImportError:
+            raise ImportError("Redis URL parser module not found. Make sure it exists and is importable.")
+
+        def load_redis_config(env_var, default):
+            redis_url = os.environ.get(env_var, default)
+            try:
+                return parse_redis_url(redis_url)
+            except ValueError as e:
+                raise ValueError(f"Error in {env_var} configuration: {e}")
+
+        # Load advanced Redis configurations using new environment variables.
+        # If the variable isn't set, we default to the pre-existing configuration.
+        self.config['REDIS_RATELIMIT_CONFIG'] = load_redis_config(
+            "REDIS_RATELIMIT", self.config['RATELIMIT_STORAGE_URL']
+        )
+        self.config['REDIS_QUOTA_CONFIG'] = load_redis_config(
+            "REDIS_QUOTA", f"redis://{self.config['REDIS_ADDRESS']}/2"
+        )
+        self.config['REDIS_FUZZDB_CONFIG'] = load_redis_config(
+            "REDIS_FUZZDB", f"redis://{self.config['REDIS_ADDRESS']}/2"
+        )
+        # -----------------------------------------------------
 
         # update the app config
         app.config.update(self.config)
