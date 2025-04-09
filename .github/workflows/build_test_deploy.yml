@@ -102,7 +102,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
       - name: Lint GitHub Actions workflow file
-        uses: reviewdog/actionlint@v1
+        uses: reviewdog/action-actionlint@v1.65.2
         with:
           reporter: github-pr-review
           github_token: ${{ secrets.GITHUB_TOKEN }}
