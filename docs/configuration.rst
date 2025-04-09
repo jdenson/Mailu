@@ -411,3 +411,33 @@ Use ``PROXY_AUTH_LOGOUT_URL`` (default: unset) to redirect users to a specific U
 
 .. _`1972`: https://github.com/Mailu/Mailu/issues/1972
 .. _`2692`: https://github.com/Mailu/Mailu/issues/2692
+
+.. _redis_url_parsing:
+
+Redis URL Parsing
+-----------------
+
+Mailu supports advanced Redis URL parsing functionality. The `parse_redis_url` function in `core/admin/mailu/redis_url_parser.py` handles various cases such as Unix socket paths, query parameters, fragments, and robust error handling.
+
+Supported URL formats:
+- `redis://[{username}:{password}@]host[:port]/db`
+- `rediss://[{username}:{password}@]host[:port]/db` (indicates TLS)
+- `redis+unix:///path/to/socket`
+- `rediss+unix:///path/to/secure/socket`
+
+Environment variables for advanced Redis configurations:
+- `REDIS_RATELIMIT`: Redis URL for rate limiting configuration.
+- `REDIS_QUOTA`: Redis URL for quota configuration.
+- `REDIS_FUZZDB`: Redis URL for fuzzdb configuration.
+
+The `parse_redis_url` function returns a dictionary with the following keys:
+- `username`: Optional username (or None)
+- `password`: Optional password (or None)
+- `host`: The Redis server hostname or IP address (or None for Unix socket)
+- `port`: The port number (default is 6379 for non-TLS and 6380 for TLS if not specified, or None for Unix socket)
+- `db`: The database index as an integer (default 0 if not specified)
+- `use_tls`: Boolean flag, True if the URL scheme is "rediss", False otherwise.
+- `unix_socket_path`: The Unix socket path (or None if not applicable)
+- `query_params`: Dictionary of query parameters (or empty dictionary if not present)
+- `fragment`: The fragment part of the URL (or None if not present)
+
