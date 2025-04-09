@@ -1,0 +1,14 @@
+name: common-setup
+on:
+  workflow_call:
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enable memory overcommit
+        run: sudo sysctl -w vm.overcommit_memory=1
+      - name: Create CDI directories
+        run: |
+          sudo mkdir -p /etc/buildkit/cdi /etc/cdi /var/run/cdi
+          sudo chmod -R 755 /etc/buildkit/cdi /etc/cdi /var/run/cdi
+          sudo chown -R $USER:$USER /etc/buildkit/cdi /etc/cdi /var/run/cdi
